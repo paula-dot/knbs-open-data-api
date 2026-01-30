@@ -1,0 +1,38 @@
+# Normalize line endings and mark sensitive files to skip in archives
+* text=auto eol=lf
+
+# Ensure Go files are treated as text
+*.go text
+
+# Treat shell scripts as text
+*.sh text
+
+# Node files
+package.json text
+package-lock.json text
+
+# Binary files should be marked as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Mark environment files and local-only secrets to be excluded from archives
+.env export-ignore
+.env.* export-ignore
+.env.local export-ignore
+.envrc export-ignore
+secrets.txt export-ignore
+
+# Ignore local build outputs
+/bin/ export-ignore
+server.log export-ignore
+
+# Keep migrations and generated SQL tracked
+backend/migrations/* text eol=lf
+backend/sqlc/** text eol=lf
+
+# Ensure editor folders are not included
+.idea/ export-ignore
+.vscode/ export-ignore

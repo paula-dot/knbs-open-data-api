@@ -7,16 +7,21 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+
 	"github.com/paula-dot/knbs-open-data-api/backend/internal/database"
+	"github.com/paula-dot/knbs-open-data-api/backend/internal/handlers"
 	"github.com/paula-dot/knbs-open-data-api/backend/internal/services"
 )
 
 func main() {
+	// 1. Load environment (optional .env)
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
 
+	// 2. Connect to DB
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		log.Fatal("DATABASE_URL not set")
@@ -28,30 +33,60 @@ func main() {
 	}
 	defer pool.Close()
 
+	// 3. Initialize sqlc Queries
 	db := database.New(pool)
 
-	_ = services.NewCountyService(db)
+	// 4. Initialize Services (The "Brain")
+	countyService := services.NewCountyService(db)
 
+	// 5. Initialize Handlers (The "Mouth")
+	countyHandler := handlers.NewCountyHandler(countyService)
+
+	// 6. Setup Router
 	r := chi.NewRouter()
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API is running"))
+
+	// Essential Middleware
+	r.Use(middleware.Logger)    // Log every request
+	r.Use(middleware.Recoverer) // Don't crash on panic
+	// CORS middleware (important for React frontend!) should go here later
+
+	// Add top-level routes for convenience (avoid 404 when hitting /counties)
+	r.Get("/counties", countyHandler.List)
+	r.Get("/counties/{id}", countyHandler.GetByID)
+
+	// 7. Define Namespaced Routes
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/counties", countyHandler.List)
+		r.Get("/counties/{id}", countyHandler.GetByID)
 	})
 
-	r.Get("/counties", func(w http.ResponseWriter, r *http.Request) {
-		counties, err := db.ListCounties(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	// Build a list of registered routes for logging and 404 responses
+	routesList := []string{}
+	if err := chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		routesList = append(routesList, method+" "+route)
+		return nil
+	}); err != nil {
+		log.Printf("WARN: error walking routes: %v", err)
+	}
 
+	log.Println("Registered routes:")
+	for _, rt := range routesList {
+		log.Println("  ", rt)
+	}
+
+	// Custom 404 handler that returns available routes to help debugging
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(counties); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":            "not found",
+			"requested_method": r.Method,
+			"requested_path":   r.URL.Path,
+			"available_routes": routesList,
+		})
 	})
 
-	log.Println("Server started on port 8080")
+	log.Println("🚀 Server starting on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}

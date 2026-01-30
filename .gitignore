@@ -1,0 +1,95 @@
+# Go
+/bin/
+/bin
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build
+*.test
+*.out
+
+# Dependency directories (remove the comment to include it)
+vendor/
+
+# IDE/editor
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+/dist/
+/frontend/node_modules/
+/frontend/dist/
+
+# Environment
+.env
+.env.*
+.env.local
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+**/knbs_pgdata/
+
+# Note: sql migrations and sqlc generated code are tracked in the repo
+# (keep them committed so codegen and migrations remain source-of-truth)
+
+# Goose logs and binary
+bin/
+server.log
+/goose_db
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+build/
+
+# Misc
+coverage.out
+*.coverprofile
+
+# JetBrains
+.idea/
+
+# Mac
+.DS_Store
+
+# Temporary
+*.tmp
+*~
+
+# Ensure we ignore Go module cache and compiled packages
+/pkg/
+
+# Ensure we ignore any secret files
+secrets.txt
+
+# Editor swap
+*.swp
+
+# Python stuff (if present)
+__pycache__/
+*.pyc
+
+# Coverage
+coverage.out
+
+# Ensure to ignore any local binaries
+/bin/
+
+# Local Kubernetes
+.kube/
+
+# Other
+.envrc
+
+# Keep SQL and generated code in repo (internal/database and backend/migrations) — remove above lines if you want them ignored
