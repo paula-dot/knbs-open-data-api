@@ -17,7 +17,7 @@ export const useStatsStore = create((set) => ({
             const normalized = raw.map((d) => {
                 const name = d.county_name || d.CountyName || d.county || d.name || d.label || d.code
                 const rawVal = d.value ?? d.Value
-                let value = 0
+                let value
                 if (rawVal && typeof rawVal === 'object') {
                     // pgtype.Numeric likely has a String field
                     value = Number(rawVal.String ?? rawVal.StringValue ?? 0) || 0
