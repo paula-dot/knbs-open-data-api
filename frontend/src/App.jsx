@@ -1,34 +1,44 @@
-import { useEffect } from "react";
-import { useCountyStore } from "./store/useCountyStore.js";
+import { useEffect } from 'react'
+import { useCountyStore } from './store/useCountyStore'
+import { useStatsStore } from './store/useStatsStore' // <--- Import
+import { CountyDataTable } from './components/ui/CountyDataTable'
+import { PopulationChart } from './components/ui/PopulationChart' // <--- Import
 
 function App() {
-    const { counties, isLoading, error, fetchCounties } = useCountyStore();
+  const { counties, isLoading, error, fetchCounties } = useCountyStore()
+  // Destructure stats store
+  const { populationData, fetchPopulationData } = useStatsStore()
 
-    useEffect(() => {
-        // fetch once on mount
-        fetchCounties();
-    }, [fetchCounties]); // include fetchCounties to satisfy hooks rules
+  useEffect(() => {
+    fetchCounties()
+    fetchPopulationData()
+  }, [fetchCounties, fetchPopulationData])
 
-    if (isLoading) return <div className="p-10">Loading Kenya's data...</div>;
-    if (error) return <div className="p-10 text-red-500">{error}</div>;
+  if (isLoading) return <div className="p-10">Loading Kenya's data...</div>
+  if (error) return <div className="p-10 text-red-500">{error}</div>
 
-    return (
-        <div className="max-w-4xl mx-auto p-10">
-            <h1 className="text-3xl font-bold mb-10">Kenya Counties</h1>
-            {counties.length === 0 ? (
-                <div className="text-gray-500">No counties available yet.</div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {counties.map((county) => (
-                        <div key={county.id} className="border p-4 rounded shadow hover:bg-gray-50">
-                            <h2 className="text-lg font-bold mb-2">{county.code} - {county.name}</h2>
-                            <p className="text-gray-600 text-sm">Province: {county.former_province ?? 'N/A'}</p>
-                        </div>
-                    ))}
-                </div>
-            )}
+  return (
+    <div className="min-h-screen bg-gray-50/50 p-8 font-sans text-gray-900">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-extrabold tracking-tight">🇰🇪 Kenya Open Data</h1>
+          <p className="text-lg text-muted-foreground">
+            Official standardized metadata and statistics.
+          </p>
         </div>
-    );
+
+        {/* --- NEW CHART SECTION --- */}
+        {populationData && populationData.length > 0 && (
+          <div className="grid grid-cols-1 gap-4">
+             <PopulationChart data={populationData} />
+          </div>
+        )}
+
+        {/* Existing County Table */}
+        <CountyDataTable data={counties} />
+      </div>
+    </div>
+  )
 }
 
-export default App;
+export default App
