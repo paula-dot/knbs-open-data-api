@@ -123,5 +123,57 @@ func main() {
 		fmt.Printf("✅ Created %s\n", c.Name)
 	}
 
+	// 1. Create the Indicator
+	fmt.Println("📊 Seeding Indicators...")
+	popIndicator, err := db.CreateIndicator(ctx, database.CreateIndicatorParams{
+		Code:        "POP_TOTAL",
+		Name:        "Total Population",
+		Description: pgtype.Text{String: "Total enumeration from 2019 Census", Valid: true},
+		Unit:        "People",
+		Source:      "KNBS 2019 Census",
+	})
+	if err != nil {
+		// If it exists, we need to fetch it to get the ID (omitted for brevity in this snippet)
+		fmt.Println("⚠️  Indicator likely exists, skipping...")
+	} else {
+		fmt.Printf("✅ Created Indicator: %s\n", popIndicator.Name)
+	}
+
+	// 2. We need the ID of the indicator we just created/fetched
+	// Ideally, fetch it by code to be safe:
+	ind, _ := db.GetIndicatorByCode(ctx, "POP_TOTAL")
+
+	// 3. Seed Observations (Sample Data)
+	// Map County Code ("001") -> Population Value
+	popData := map[string]float64{
+		"001": 1208333, // Mombasa
+		"047": 4397073, // Nairobi
+		"032": 2162202, // Nakuru
+		"022": 2417735, // Kiambu
+		"027": 1163186, // Uasin Gishu
+		// ... add more if you like
+	}
+
+	fmt.Println("📈 Seeding Observations...")
+	for code, value := range popData {
+		// Simpler approach for this snippet: parse code to int since our IDs match the codes
+		var countyID int32
+		fmt.Sscanf(code, "%d", &countyID)
+
+		_, err := db.CreateObservation(ctx, database.CreateObservationParams{
+			CountyID:       countyID,
+			IndicatorID:    ind.ID,
+			Year:           2019,
+			Value:          floatToNumeric(value),
+			SourceDocument: pgtype.Text{String: "Volume I", Valid: true},
+		})
+		if err != nil {
+			// If insert fails (duplicate, FK, etc.) just continue
+			fmt.Printf("⚠️  Skipping observation for county %s: %v\n", code, err)
+			continue
+		}
+		fmt.Printf("   -> Added data for County %s: %.0f\n", code, value)
+	}
+
 	fmt.Println("🏁 Seeding complete!")
 }

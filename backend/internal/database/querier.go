@@ -14,6 +14,7 @@ type Querier interface {
 	CreateObservation(ctx context.Context, arg CreateObservationParams) (Observation, error)
 	GetCounty(ctx context.Context, id int32) (County, error)
 	GetDataByCountyAndYear(ctx context.Context, arg GetDataByCountyAndYearParams) ([]GetDataByCountyAndYearRow, error)
+	GetDataByIndicator(ctx context.Context, arg GetDataByIndicatorParams) ([]GetDataByIndicatorRow, error)
 	GetIndicatorByCode(ctx context.Context, code string) (Indicator, error)
 	ListCounties(ctx context.Context) ([]County, error)
 	ListIndicators(ctx context.Context) ([]Indicator, error)

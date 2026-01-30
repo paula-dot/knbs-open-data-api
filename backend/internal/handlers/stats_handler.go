@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/paula-dot/knbs-open-data-api/backend/internal/services"
 )
 
@@ -63,5 +62,9 @@ func (h *StatsHandler) GetData(w http.ResponseWriter, r *http.Request) {
 			"year":      year,
 		},
 	})
+
+}
+
+func (h *StatsHandler) ListIndicators(writer http.ResponseWriter, request *http.Request) {
 
 }
