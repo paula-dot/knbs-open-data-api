@@ -84,7 +84,8 @@ goose -dir migrations postgres "connection-string" up
 ### Dependencies
 - **Router**: Chi (github.com/go-chi/chi/v5)
 - **Database**: pgx/v5 (github.com/jackc/pgx/v5)
-- **Configuration**: Use environment variables via godotenv
+- **Configuration**: Environment variables via godotenv (github.com/joho/godotenv)
+  - Note: Viper may be added in the future for advanced configuration management
 
 ---
 
