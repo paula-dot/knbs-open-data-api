@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useCountyStore } from "./store/useCountyStore";
+import { useCountyStore } from "./store/useCountyStore.js";
 
 function App() {
     const { counties, isLoading, error, fetchCounties } = useCountyStore();
