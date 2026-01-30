@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/paula-dot/knbs-open-data-api/backend/internal/database"
+	"github.com/paula-dot/knbs-open-data-api/backend/internal/services"
 )
 
 func main() {
@@ -28,6 +29,9 @@ func main() {
 	defer pool.Close()
 
 	db := database.New(pool)
+
+	_ = services.NewCountyService(db)
+
 	r := chi.NewRouter()
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API is running"))
