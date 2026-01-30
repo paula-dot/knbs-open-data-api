@@ -13,4 +13,18 @@ SELECT
 FROM observations o
 JOIN counties c ON c.id = o.county_id
 JOIN indicators i ON i.id = o.indicator_id
-WHERE c.id = $1 AND o.year = $2;
+WHERE c.id = $1 AND o.year = $2
+ORDER BY c.name;
+
+-- name: GetDataByIndicator :many
+SELECT
+    o.value,
+    o.year,
+    c.name as county_name,
+    i.name as indicator_name,
+    i.unit
+FROM observations o
+JOIN counties c ON c.id = o.county_id
+JOIN indicators i ON i.id = o.indicator_id
+WHERE i.code = $1 AND o.year = $2
+ORDER BY c.name;

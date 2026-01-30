@@ -57,6 +57,7 @@ FROM observations o
 JOIN counties c ON c.id = o.county_id
 JOIN indicators i ON i.id = o.indicator_id
 WHERE c.id = $1 AND o.year = $2
+ORDER BY c.name
 `
 
 type GetDataByCountyAndYearParams struct {
@@ -81,6 +82,59 @@ func (q *Queries) GetDataByCountyAndYear(ctx context.Context, arg GetDataByCount
 	items := []GetDataByCountyAndYearRow{}
 	for rows.Next() {
 		var i GetDataByCountyAndYearRow
+		if err := rows.Scan(
+			&i.Value,
+			&i.Year,
+			&i.CountyName,
+			&i.IndicatorName,
+			&i.Unit,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDataByIndicator = `-- name: GetDataByIndicator :many
+SELECT
+    o.value,
+    o.year,
+    c.name as county_name,
+    i.name as indicator_name,
+    i.unit
+FROM observations o
+JOIN counties c ON c.id = o.county_id
+JOIN indicators i ON i.id = o.indicator_id
+WHERE i.code = $1 AND o.year = $2
+ORDER BY c.name
+`
+
+type GetDataByIndicatorParams struct {
+	Code string `json:"code"`
+	Year int32  `json:"year"`
+}
+
+type GetDataByIndicatorRow struct {
+	Value         pgtype.Numeric `json:"value"`
+	Year          int32          `json:"year"`
+	CountyName    string         `json:"county_name"`
+	IndicatorName string         `json:"indicator_name"`
+	Unit          string         `json:"unit"`
+}
+
+func (q *Queries) GetDataByIndicator(ctx context.Context, arg GetDataByIndicatorParams) ([]GetDataByIndicatorRow, error) {
+	rows, err := q.db.Query(ctx, getDataByIndicator, arg.Code, arg.Year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetDataByIndicatorRow{}
+	for rows.Next() {
+		var i GetDataByIndicatorRow
 		if err := rows.Scan(
 			&i.Value,
 			&i.Year,
