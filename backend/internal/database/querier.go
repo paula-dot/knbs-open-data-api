@@ -10,10 +10,13 @@ import (
 
 type Querier interface {
 	CreateCounty(ctx context.Context, arg CreateCountyParams) (County, error)
+	CreateIndicator(ctx context.Context, arg CreateIndicatorParams) (Indicator, error)
 	CreateObservation(ctx context.Context, arg CreateObservationParams) (Observation, error)
 	GetCounty(ctx context.Context, id int32) (County, error)
 	GetDataByCountyAndYear(ctx context.Context, arg GetDataByCountyAndYearParams) ([]GetDataByCountyAndYearRow, error)
+	GetIndicatorByCode(ctx context.Context, code string) (Indicator, error)
 	ListCounties(ctx context.Context) ([]County, error)
+	ListIndicators(ctx context.Context) ([]Indicator, error)
 }
 
 var _ Querier = (*Queries)(nil)

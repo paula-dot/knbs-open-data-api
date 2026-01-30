@@ -57,6 +57,7 @@ FROM observations o
 JOIN counties c ON c.id = o.county_id
 JOIN indicators i ON i.id = o.indicator_id
 WHERE c.id = $1 AND o.year = $2
+ORDER BY c.name
 `
 
 type GetDataByCountyAndYearParams struct {
