@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -37,11 +38,13 @@ func main() {
 	// 3. Initialize sqlc Queries
 	db := database.New(pool)
 
-	// 4. Initialize Services (The "Brain")
+	// 4. Initialize Services
 	countyService := services.NewCountyService(db)
+	statsService := services.NewStatsService(db)
 
-	// 5. Initialize Handlers (The "Mouth")
+	// 5. Initialize Handlers
 	countyHandler := handlers.NewCountyHandler(countyService)
+	statsHandler := handlers.NewStatsHandler(statsService)
 
 	// 6. Setup Router
 	r := chi.NewRouter()
@@ -56,9 +59,8 @@ func main() {
 	}))
 
 	// Essential Middleware
-	r.Use(middleware.Logger)    // Log every request
-	r.Use(middleware.Recoverer) // Don't crash on panic
-	// CORS middleware (important for React frontend!) should go here later
+	r.Use(middleware.Logger) // Log every request
+	r.Use(middleware.Recoverer)
 
 	// Add top-level routes for convenience (avoid 404 when hitting /counties)
 	r.Get("/counties", countyHandler.List)
@@ -68,6 +70,10 @@ func main() {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/counties", countyHandler.List)
 		r.Get("/counties/{id}", countyHandler.GetByID)
+
+		// New Stats Routes
+		r.Get("/indicators", statsHandler.ListIndicators)
+		r.Get("/data", statsHandler.GetData)
 	})
 
 	// Build a list of registered routes for logging and 404 responses
@@ -96,8 +102,13 @@ func main() {
 		})
 	})
 
-	log.Println("🚀 Server starting on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := fmt.Sprintf(":%s", port)
+	log.Printf("🚀 Server starting on %s", addr)
+	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
