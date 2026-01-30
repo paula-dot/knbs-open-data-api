@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -19,9 +20,10 @@ func NewStatsHandler(service services.StatsService) *StatsHandler {
 }
 
 // ListIndicators handles GET /indicators
-func (h *StatsHandler) GetIndicators(w http.ResponseWriter, r *http.Request) {
+func (h *StatsHandler) ListIndicators(w http.ResponseWriter, r *http.Request) {
 	indicators, err := h.service.GetIndicators(r.Context())
 	if err != nil {
+		log.Printf("Error fetching indicators: %v", err)
 		http.Error(w, "Failed to fetch indicators", http.StatusInternalServerError)
 		return
 	}
@@ -44,12 +46,19 @@ func (h *StatsHandler) GetData(w http.ResponseWriter, r *http.Request) {
 
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
-		http.Error(w, "Invalid year", http.StatusBadRequest)
+		http.Error(w, "Invalid year format", http.StatusBadRequest)
+		return
+	}
+
+	// Validate year range
+	if year < 1900 || year > 2100 {
+		http.Error(w, "Year must be between 1900 and 2100", http.StatusBadRequest)
 		return
 	}
 
 	data, err := h.service.GetData(r.Context(), indicatorCode, int32(year))
 	if err != nil {
+		log.Printf("Error fetching data for indicator %s, year %d: %v", indicatorCode, year, err)
 		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
 		return
 	}
@@ -62,9 +71,4 @@ func (h *StatsHandler) GetData(w http.ResponseWriter, r *http.Request) {
 			"year":      year,
 		},
 	})
-
-}
-
-func (h *StatsHandler) ListIndicators(writer http.ResponseWriter, request *http.Request) {
-
 }
